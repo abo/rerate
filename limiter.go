@@ -9,10 +9,11 @@ type Limiter struct {
 }
 
 // NewLimiter create a new redis-based ratelimiter
-func NewLimiter(pool Pool, prefix string, window, step time.Duration, max int64) *Limiter {
+// the Limiter limits the rate to n times per w
+func NewLimiter(pool Pool, pfx string, w, s time.Duration, n int64) *Limiter {
 	return &Limiter{
-		Counter: *NewCounter(pool, prefix, window, step),
-		max:     max,
+		Counter: *NewCounter(pool, pfx, w, s),
+		max:     n,
 	}
 }
 
