@@ -50,7 +50,7 @@ func (c *Counter) inc(id string, bucket int) error {
 	conn.Send("MULTI")
 	conn.Send("HINCRBY", c.key(id), strconv.Itoa(bucket), 1)
 	conn.Send("HDEL", c.key(id), strconv.Itoa(bucket+1))
-	conn.Send("PEXPIRE", c.key(id), c.w/time.Millisecond)
+	conn.Send("PEXPIRE", c.key(id), int64(c.w/time.Millisecond))
 	_, err := conn.Do("EXEC")
 
 	return err
