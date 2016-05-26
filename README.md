@@ -24,8 +24,8 @@ func main() {
     
     // Counter
     counter := ratelimiter.NewCounter(pool, "rl:test", 10 * time.Minute, 15 * time.Second)
-    counter.Inc("event001")
-    c, err := counter.Count("event001")
+    counter.Inc("click")
+    c, err := counter.Count("click")
     
     // Limiter
     limiter := ratelimiter.NewLimiter(pool, "rl:test", 1 * time.Hour, 15 * time.Minute, 100)
