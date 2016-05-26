@@ -32,7 +32,7 @@ func TestLimiter(t *testing.T) {
 }
 
 func TestExpre(t *testing.T) {
-	limiter := NewLimiter(pool, "ratelimiter:test:expire", 5*time.Second, time.Second, 20)
+	limiter := NewLimiter(pool, "ratelimiter:test:expire", 3*time.Second, time.Second, 20)
 	k := randkey()
 	limiter.Reset(k)
 
@@ -47,7 +47,7 @@ func TestExpre(t *testing.T) {
 		t.Fatal("expect 18, remaining ", c)
 	}
 
-	wait(4 * time.Second)
+	wait(2 * time.Second)
 	if c, _ := limiter.Remaining(k); c != 19 {
 		t.Fatal("expect 1 released", c)
 	}
