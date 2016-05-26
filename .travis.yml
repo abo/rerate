@@ -1,0 +1,27 @@
+---
+language: go
+go:
+    - 1.5
+    - 1.6
+    - tip
+
+env:
+    - REDIS_VERSION=stable
+
+install:
+    - wget http://download.redis.io/releases/redis-$REDIS_VERSION.tar.gz
+    - tar xf redis-$REDIS_VERSION.tar.gz
+    - (cd redis-$REDIS_VERSION && make)
+    - gem install redis
+    - export PATH=./redis-$REDIS_VERSION/src:$PATH
+    - go get -v -t ./...
+
+before_script:
+    # sleep a bit to allow things to get set up
+    - sleep 10
+
+script:
+    - go test -v ./...
+
+after_failure:
+    - tail -n100 ./*.log

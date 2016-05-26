@@ -1,9 +1,12 @@
-ratelimiter
+ratelimiter 
 ===========
+[![Build Status](https://travis-ci.org/abo/ratelimiter.svg)](https://travis-ci.org/abo/ratelimiter)
+[![GoDoc](https://godoc.org/github.com/abo/ratelimiter?status.svg)](https://godoc.org/github.com/abo/ratelimiter)
+
 ratelimiter is a redis-based ratecounter and ratelimiter
 
-* Counter - redis-based counter
-* Limiter - redis-based limiter
+* [Counter](https://godoc.org/github.com/abo/ratelimiter#Counter) - redis-based counter
+* [Limiter](https://godoc.org/github.com/abo/ratelimiter#Limiter) - redis-based limiter
 
 Tutorial
 --------
@@ -17,9 +20,10 @@ import (
 ...
 
 func main() {
-    // Counter
     pool := newRedisPool("localhost:6379", "")
-	counter := ratelimiter.NewCounter(pool, "rl:test", 10 * time.Minute, 15 * time.Second)
+    
+    // Counter
+    counter := ratelimiter.NewCounter(pool, "rl:test", 10 * time.Minute, 15 * time.Second)
     counter.Inc("event001")
     c, err := counter.Count("event001")
     
@@ -43,7 +47,7 @@ Documentation
 -------------
 
 - [API Reference](http://godoc.org/github.com/abo/ratelimiter)
-- [FAQ](https://github.com/abo/ratelimiter/wiki/FAQ)
+- [Wiki](https://github.com/abo/ratelimiter/wiki)
 
 
 Contributing
