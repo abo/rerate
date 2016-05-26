@@ -30,9 +30,9 @@ func NewCounter(pool Pool, pfx string, w, s time.Duration) *Counter {
 	}
 }
 
-func (c *Counter) bucket() int {
-	now := time.Now().UnixNano()
-	return int(now/int64(c.s)) % c.bkts
+// hash a time to n buckets(n=c.bkts)
+func (c *Counter) hash(t int64) int {
+	return int(t/int64(c.s)) % c.bkts
 }
 
 func (c *Counter) key(id string) string {
@@ -42,10 +42,8 @@ func (c *Counter) key(id string) string {
 	return buf.String()
 }
 
-// Inc increment id's occurs, id is the event, may be user's ip, userid ...
-func (c *Counter) Inc(id string) error {
-	bucket := c.bucket()
-
+// increment count in specific bucket
+func (c *Counter) inc(id string, bucket int) error {
 	conn := c.pool.Get()
 	defer conn.Close()
 
@@ -58,13 +56,20 @@ func (c *Counter) Inc(id string) error {
 	return err
 }
 
-// Count return total occurs in duration(buckets * precision)
-func (c *Counter) Count(id string) (int64, error) {
-	bucket := c.bucket()
-	args := make([]interface{}, c.bkts)
+// Inc increment id's occurs with current timestamp,
+// the count before Counter.w will be cleanup
+func (c *Counter) Inc(id string) error {
+	now := time.Now().UnixNano()
+	bucket := c.hash(now)
+	return c.inc(id, bucket)
+}
+
+// sum multiple buckets' count, return total
+func (c *Counter) count(id string, buckets []int) (int64, error) {
+	args := make([]interface{}, len(buckets)+1)
 	args[0] = c.key(id)
-	for i := 0; i < c.bkts-1; i++ {
-		args[i+1] = strconv.Itoa((c.bkts + bucket - i) % c.bkts)
+	for i, v := range buckets {
+		args[i+1] = strconv.Itoa(v)
 	}
 
 	conn := c.pool.Get()
@@ -83,6 +88,22 @@ func (c *Counter) Count(id string) (int64, error) {
 	}
 
 	return total, nil
+}
+
+// return available buckets
+func (c *Counter) buckets(now int) []int {
+	rs := make([]int, c.bkts-1)
+	for i := 0; i < c.bkts-1; i++ {
+		rs[i] = (c.bkts + now - i) % c.bkts
+	}
+	return rs
+}
+
+// Count return total occurs in period of Counter.w
+func (c *Counter) Count(id string) (int64, error) {
+	now := time.Now().UnixNano()
+	buckets := c.buckets(c.hash(now))
+	return c.count(id, buckets)
 }
 
 // Reset cleanup occurs, set it to zero
