@@ -2,6 +2,8 @@ ratelimiter
 ===========
 [![Build Status](https://travis-ci.org/abo/ratelimiter.svg)](https://travis-ci.org/abo/ratelimiter)
 [![GoDoc](https://godoc.org/github.com/abo/ratelimiter?status.svg)](https://godoc.org/github.com/abo/ratelimiter)
+[![Go Report Card](https://goreportcard.com/badge/github.com/abo/ratelimiter)](https://goreportcard.com/report/github.com/abo/ratelimiter)
+[![Coverage](http://gocover.io/_badge/github.com/abo/ratelimiter)](https://gocover.io/github.com/abo/ratelimiter)
 
 ratelimiter is a redis-based ratecounter and ratelimiter
 
