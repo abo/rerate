@@ -3,6 +3,7 @@ package ratelimiter
 import (
 	"math/rand"
 	"reflect"
+	"strconv"
 	"testing"
 	"time"
 
@@ -35,6 +36,15 @@ func newPool(server, password string) *redis.Pool {
 			return err
 		},
 	}
+}
+
+func wait(duration time.Duration) {
+	t1 := time.NewTimer(duration)
+	<-t1.C
+}
+
+func randkey() string {
+	return strconv.Itoa(rand.Int())
 }
 
 func init() {
@@ -87,7 +97,7 @@ func TestHash(t *testing.T) {
 
 func TestCount(t *testing.T) {
 	counter := NewCounter(pool, "ratelimiter:test:counter", 10*time.Second, time.Second)
-	id := "a"
+	id := randkey()
 	counter.Reset(id)
 	// inc(id, 1) + inc(id, 2) = count(id)
 	counter.inc(id, 0)
@@ -121,7 +131,7 @@ func TestCount(t *testing.T) {
 
 func TestCounter(t *testing.T) {
 	counter := NewCounter(pool, "ratelimiter:test:counter", time.Minute, time.Second)
-	ip1, ip2 := "114.255.86.248", "114.255.86.249"
+	ip1, ip2 := randkey(), randkey()
 
 	if err := counter.Reset(ip1); err != nil {
 		t.Fatal("can not reset counter", err)

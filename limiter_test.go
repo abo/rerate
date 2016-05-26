@@ -7,7 +7,7 @@ import (
 
 func TestLimiter(t *testing.T) {
 	limiter := NewLimiter(pool, "ratelimiter:test:limiter", time.Minute, time.Second, 20)
-	k := "abc"
+	k := randkey()
 	limiter.Reset(k)
 
 	if exceed, err := limiter.Exceeded(k); err != nil || exceed {
@@ -33,7 +33,7 @@ func TestLimiter(t *testing.T) {
 
 func TestExpre(t *testing.T) {
 	limiter := NewLimiter(pool, "ratelimiter:test:expire", 5*time.Second, time.Second, 20)
-	k := "k"
+	k := randkey()
 	limiter.Reset(k)
 
 	limiter.Inc(k)
@@ -56,10 +56,4 @@ func TestExpre(t *testing.T) {
 	if c, _ := limiter.Remaining(k); c != 20 {
 		t.Fatal("expect all released", c)
 	}
-
-}
-
-func wait(duration time.Duration) {
-	t1 := time.NewTimer(duration)
-	<-t1.C
 }
