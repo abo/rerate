@@ -5,15 +5,10 @@ go:
     - 1.6
     - tip
 
-env:
-    - REDIS_VERSION=stable
+services:
+  - redis-server    
 
 install:
-    - wget http://download.redis.io/releases/redis-$REDIS_VERSION.tar.gz
-    - tar xf redis-$REDIS_VERSION.tar.gz
-    - (cd redis-$REDIS_VERSION && make)
-    - gem install redis
-    - export PATH=./redis-$REDIS_VERSION/src:$PATH
     - go get -v -t ./...
 
 before_script:
