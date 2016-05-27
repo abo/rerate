@@ -53,9 +53,9 @@ func init() {
 
 func TestBuckets(t *testing.T) {
 	testcases := map[int][]int{
-		1:  []int{1, 0, 10, 9, 8, 7, 6, 5, 4, 3},
-		0:  []int{0, 10, 9, 8, 7, 6, 5, 4, 3, 2},
-		10: []int{10, 9, 8, 7, 6, 5, 4, 3, 2, 1},
+		1:  {1, 0, 10, 9, 8, 7, 6, 5, 4, 3},
+		0:  {0, 10, 9, 8, 7, 6, 5, 4, 3, 2},
+		10: {10, 9, 8, 7, 6, 5, 4, 3, 2, 1},
 	}
 
 	counter := NewCounter(pool, "rerate:test:counter:buckets", 10*time.Second, time.Second)
