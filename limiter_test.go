@@ -1,4 +1,4 @@
-package ratelimiter
+package rerate
 
 import (
 	"testing"
@@ -6,7 +6,7 @@ import (
 )
 
 func TestLimiter(t *testing.T) {
-	limiter := NewLimiter(pool, "ratelimiter:test:limiter", time.Minute, time.Second, 20)
+	limiter := NewLimiter(pool, "rerate:test:limiter:limiter", time.Minute, time.Second, 20)
 	k := randkey()
 	limiter.Reset(k)
 
@@ -32,7 +32,7 @@ func TestLimiter(t *testing.T) {
 }
 
 func TestExpre(t *testing.T) {
-	limiter := NewLimiter(pool, "ratelimiter:test:expire", 3*time.Second, time.Second, 20)
+	limiter := NewLimiter(pool, "rerate:test:limiter:expire", 3*time.Second, time.Second, 20)
 	k := randkey()
 	limiter.Reset(k)
 

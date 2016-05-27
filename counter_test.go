@@ -1,4 +1,4 @@
-package ratelimiter
+package rerate
 
 import (
 	"math/rand"
@@ -58,7 +58,7 @@ func TestBuckets(t *testing.T) {
 		10: []int{10, 9, 8, 7, 6, 5, 4, 3, 2, 1},
 	}
 
-	counter := NewCounter(pool, "ratelimiter:test:buckets", 10*time.Second, time.Second)
+	counter := NewCounter(pool, "rerate:test:counter:buckets", 10*time.Second, time.Second)
 	for input, expect := range testcases {
 		buckets := counter.buckets(input)
 		if !reflect.DeepEqual(buckets, expect) {
@@ -69,7 +69,7 @@ func TestBuckets(t *testing.T) {
 
 func TestHash(t *testing.T) {
 	// hash(a+s) = hash(a)+1
-	counter := NewCounter(pool, "ratelimiter:test:hash", time.Minute, time.Second)
+	counter := NewCounter(pool, "rerate:test:counter:hash", time.Minute, time.Second)
 	l := int(time.Minute / time.Second)
 
 	testcases := []int64{time.Now().UnixNano(),
@@ -96,7 +96,7 @@ func TestHash(t *testing.T) {
 }
 
 func TestCount(t *testing.T) {
-	counter := NewCounter(pool, "ratelimiter:test:counter", 10*time.Second, time.Second)
+	counter := NewCounter(pool, "rerate:test:counter:count", 10*time.Second, time.Second)
 	id := randkey()
 	counter.Reset(id)
 	// inc(id, 1) + inc(id, 2) = count(id)
@@ -130,7 +130,7 @@ func TestCount(t *testing.T) {
 }
 
 func TestCounter(t *testing.T) {
-	counter := NewCounter(pool, "ratelimiter:test:counter", time.Minute, time.Second)
+	counter := NewCounter(pool, "rerate:test:counter:counter", time.Minute, time.Second)
 	ip1, ip2 := randkey(), randkey()
 
 	if err := counter.Reset(ip1); err != nil {

@@ -1,4 +1,4 @@
-package ratelimiter
+package rerate
 
 import (
 	"github.com/garyburd/redigo/redis"
