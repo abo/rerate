@@ -9,11 +9,11 @@ type Limiter struct {
 }
 
 // NewLimiter create a new redis-based ratelimiter
-// the Limiter limits the rate to n times per w
-func NewLimiter(pool Pool, pfx string, w, s time.Duration, n int64) *Limiter {
+// the Limiter limits the rate to max times per period
+func NewLimiter(pool Pool, pfx string, period, interval time.Duration, max int64) *Limiter {
 	return &Limiter{
-		Counter: *NewCounter(pool, pfx, w, s),
-		max:     n,
+		Counter: *NewCounter(pool, pfx, period, interval),
+		max:     max,
 	}
 }
 
@@ -26,7 +26,7 @@ func (l *Limiter) Remaining(id string) (int64, error) {
 	return l.max - occurs, nil
 }
 
-// Exceeded exceeded the rate limit or not
+// Exceeded is exceeded the rate limit or not
 func (l *Limiter) Exceeded(id string) (bool, error) {
 	rem, err := l.Remaining(id)
 	if err != nil {

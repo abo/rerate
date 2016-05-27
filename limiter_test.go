@@ -31,7 +31,7 @@ func TestLimiter(t *testing.T) {
 	}
 }
 
-func TestExpre(t *testing.T) {
+func TestExpire(t *testing.T) {
 	limiter := NewLimiter(pool, "rerate:test:limiter:expire", 3*time.Second, time.Second, 20)
 	k := randkey()
 	limiter.Reset(k)

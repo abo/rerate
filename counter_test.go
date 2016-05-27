@@ -95,39 +95,72 @@ func TestHash(t *testing.T) {
 
 }
 
-func TestCount(t *testing.T) {
+func TestHistogram(t *testing.T) {
 	counter := NewCounter(pool, "rerate:test:counter:count", 10*time.Second, time.Second)
 	id := randkey()
 	counter.Reset(id)
-	// inc(id, 1) + inc(id, 2) = count(id)
-	counter.inc(id, 0)
-	counter.inc(id, 1)
-	c, e := counter.count(id, []int{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10})
-	if e != nil {
-		t.Fatal(e)
-	}
-	if c != 2 {
-		t.Fatal("expect 2, but ", c)
+
+	bks, err := counter.Histogram(id)
+	if err != nil {
+		t.Fatal("histogram failed")
 	}
 
-	counter.inc(id, 1)
-	c2, e2 := counter.count(id, []int{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10})
-	if e2 != nil {
-		t.Fatal(e2)
-	}
-	if c2 != 3 {
-		t.Fatal("expect 3, but ", c2)
+	if !reflect.DeepEqual(bks, []int64{0, 0, 0, 0, 0, 0, 0, 0, 0, 0}) {
+		t.Fatal("actual ", bks)
 	}
 
-	counter.inc(id, 0)
-	c3, e3 := counter.count(id, []int{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10})
-	if e3 != nil {
-		t.Fatal(e3)
+	for i := 0; i <= 10; i++ {
+		counter.inc(id, i)
 	}
-	if c3 != 2 {
-		t.Fatal("expect 2, but ", c3)
+	if b, _ := counter.Histogram(id); !reflect.DeepEqual(b, []int64{1, 1, 1, 1, 1, 1, 1, 1, 1, 1}) {
+		t.Fatal("actual ", b)
+	}
+
+	counter.Inc(id)
+	if b, _ := counter.Histogram(id); !reflect.DeepEqual(b, []int64{2, 1, 1, 1, 1, 1, 1, 1, 1, 1}) {
+		t.Fatal("actual ", b)
+	}
+
+	wait(time.Second)
+	counter.Inc(id)
+	if b, _ := counter.Histogram(id); !reflect.DeepEqual(b, []int64{1, 2, 1, 1, 1, 1, 1, 1, 1, 1}) {
+		t.Fatal("actual ", b)
 	}
 }
+
+// func TestCount(t *testing.T) {
+// 	counter := NewCounter(pool, "rerate:test:counter:count", 10*time.Second, time.Second)
+// 	id := randkey()
+// 	counter.Reset(id)
+// 	// inc(id, 1) + inc(id, 2) = count(id)
+// 	counter.inc(id, 0)
+// 	counter.inc(id, 1)
+// 	c, e := counter.count(id, []int{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10})
+// 	if e != nil {
+// 		t.Fatal(e)
+// 	}
+// 	if c != 2 {
+// 		t.Fatal("expect 2, but ", c)
+// 	}
+
+// 	counter.inc(id, 1)
+// 	c2, e2 := counter.count(id, []int{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10})
+// 	if e2 != nil {
+// 		t.Fatal(e2)
+// 	}
+// 	if c2 != 3 {
+// 		t.Fatal("expect 3, but ", c2)
+// 	}
+
+// 	counter.inc(id, 0)
+// 	c3, e3 := counter.count(id, []int{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10})
+// 	if e3 != nil {
+// 		t.Fatal(e3)
+// 	}
+// 	if c3 != 2 {
+// 		t.Fatal("expect 2, but ", c3)
+// 	}
+// }
 
 func TestCounter(t *testing.T) {
 	counter := NewCounter(pool, "rerate:test:counter:counter", time.Minute, time.Second)

@@ -7,8 +7,12 @@ rerate
 
 rerate is a redis-based ratecounter and ratelimiter
 
-* [Counter](https://godoc.org/github.com/abo/rerate#Counter) - redis-based counter
-* [Limiter](https://godoc.org/github.com/abo/rerate#Limiter) - redis-based limiter
+* Dead simple api
+* With redis as backend, multiple rate counters/limiters can work as a cluster
+* Count/Limit requests any period, 2 day, 1 hour, 5 minute or 2 second, it's up to you
+* Recording requests as a histotram, which can be used to visualize or monitor
+* Limit requests from single ip, userid, applicationid, or any other unique identifier
+
 
 Tutorial
 --------
