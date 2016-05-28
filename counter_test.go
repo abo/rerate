@@ -53,8 +53,8 @@ func init() {
 
 func TestBuckets(t *testing.T) {
 	testcases := map[int][]int{
-		1:  {1, 0, 10, 9, 8, 7, 6, 5, 4, 3},
-		0:  {0, 10, 9, 8, 7, 6, 5, 4, 3, 2},
+		1:  {1, 0, 19, 18, 17, 16, 15, 14, 13, 12},
+		0:  {0, 19, 18, 17, 16, 15, 14, 13, 12, 11},
 		10: {10, 9, 8, 7, 6, 5, 4, 3, 2, 1},
 	}
 
@@ -82,13 +82,13 @@ func TestHash(t *testing.T) {
 		next := input + int64(time.Second)
 		b := counter.hash(input)
 		nb := counter.hash(next)
-		if b < 0 || b > l {
+		if b < 0 || b > 2*l {
 			t.Fatal("out of range ", input)
 		}
-		if nb < 0 || nb > l {
+		if nb < 0 || nb > 2*l {
 			t.Fatal("out of range ", input)
 		}
-		if b+1 != nb && b-l != nb {
+		if b+1 != nb && b-(2*l) != nb {
 			t.Fatal("input ", input)
 		}
 	}
@@ -96,71 +96,29 @@ func TestHash(t *testing.T) {
 }
 
 func TestHistogram(t *testing.T) {
-	counter := NewCounter(pool, "rerate:test:counter:count", 10*time.Second, time.Second)
+	counter := NewCounter(pool, "rerate:test:counter:count", 4000*time.Millisecond, 400*time.Millisecond)
 	id := randkey()
 	counter.Reset(id)
+	assertHist(t, counter, id, []int64{0, 0, 0, 0, 0, 0, 0, 0, 0, 0})
 
-	bks, err := counter.Histogram(id)
-	if err != nil {
-		t.Fatal("histogram failed")
+	current := counter.hash(time.Now().UnixNano())
+	for i := 0; i <= current; i++ {
+		for j := 0; j < i; j++ {
+			counter.inc(id, i)
+		}
 	}
+	hist, _ := counter.Histogram(id)
 
-	if !reflect.DeepEqual(bks, []int64{0, 0, 0, 0, 0, 0, 0, 0, 0, 0}) {
-		t.Fatal("actual ", bks)
-	}
+	for k := 0; k <= 10; k++ {
+		wait(counter.interval)
+		for i := len(hist) - 1; i > 0; i-- {
+			hist[i] = hist[i-1]
+		}
+		hist[0] = 0
 
-	for i := 0; i <= 10; i++ {
-		counter.inc(id, i)
-	}
-	if b, _ := counter.Histogram(id); !reflect.DeepEqual(b, []int64{1, 1, 1, 1, 1, 1, 1, 1, 1, 1}) {
-		t.Fatal("actual ", b)
-	}
-
-	counter.Inc(id)
-	if b, _ := counter.Histogram(id); !reflect.DeepEqual(b, []int64{2, 1, 1, 1, 1, 1, 1, 1, 1, 1}) {
-		t.Fatal("actual ", b)
-	}
-
-	wait(time.Second)
-	counter.Inc(id)
-	if b, _ := counter.Histogram(id); !reflect.DeepEqual(b, []int64{1, 2, 1, 1, 1, 1, 1, 1, 1, 1}) {
-		t.Fatal("actual ", b)
+		assertHist(t, counter, id, hist)
 	}
 }
-
-// func TestCount(t *testing.T) {
-// 	counter := NewCounter(pool, "rerate:test:counter:count", 10*time.Second, time.Second)
-// 	id := randkey()
-// 	counter.Reset(id)
-// 	// inc(id, 1) + inc(id, 2) = count(id)
-// 	counter.inc(id, 0)
-// 	counter.inc(id, 1)
-// 	c, e := counter.count(id, []int{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10})
-// 	if e != nil {
-// 		t.Fatal(e)
-// 	}
-// 	if c != 2 {
-// 		t.Fatal("expect 2, but ", c)
-// 	}
-
-// 	counter.inc(id, 1)
-// 	c2, e2 := counter.count(id, []int{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10})
-// 	if e2 != nil {
-// 		t.Fatal(e2)
-// 	}
-// 	if c2 != 3 {
-// 		t.Fatal("expect 3, but ", c2)
-// 	}
-
-// 	counter.inc(id, 0)
-// 	c3, e3 := counter.count(id, []int{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10})
-// 	if e3 != nil {
-// 		t.Fatal(e3)
-// 	}
-// 	if c3 != 2 {
-// 		t.Fatal("expect 2, but ", c3)
-// 	}
-// }
 
 func TestCounter(t *testing.T) {
 	counter := NewCounter(pool, "rerate:test:counter:counter", time.Minute, time.Second)
@@ -173,25 +131,23 @@ func TestCounter(t *testing.T) {
 		t.Fatal("can not reset counter", err)
 	}
 
-	if c, err := counter.Count(ip1); err != nil || c != 0 {
-		t.Fatal("should be 0 without error, ", c, err)
-	}
+	assertCount(t, counter, ip1, 0)
 
-	// if err := counter.Inc(ip1); err != nil {
-	// 	t.Fatal("can not inc", ip1, err)
-	// }
-	// if c, err := counter.Count(ip1); err != nil || c != 1 {
-	// 	t.Fatal("should be 1 without error, ", c, err)
-	// }
 	for i := 0; i < 10; i++ {
 		counter.Inc(ip1)
+		assertCount(t, counter, ip1, int64(i+1))
+		assertCount(t, counter, ip2, 0)
 	}
+}
 
-	if c, err := counter.Count(ip1); err != nil || c != 10 {
-		t.Fatal("should be 11 without error, ", c, err)
+func assertCount(t *testing.T, c *Counter, k string, expect int64) {
+	if count, err := c.Count(k); err != nil || count != expect {
+		t.Fatal("should be ", expect, " without error, actual ", count, err)
 	}
+}
 
-	if c, err := counter.Count(ip2); err != nil || c != 0 {
-		t.Fatal("should be 0 without error, ", c, err)
+func assertHist(t *testing.T, c *Counter, k string, expect []int64) {
+	if b, err := c.Histogram(k); err != nil || !reflect.DeepEqual(b, expect) {
+		t.Fatal("expect ", expect, " without err, actual", b, err)
 	}
 }

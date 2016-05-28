@@ -10,25 +10,15 @@ func TestLimiter(t *testing.T) {
 	k := randkey()
 	limiter.Reset(k)
 
-	if exceed, err := limiter.Exceeded(k); err != nil || exceed {
-		t.Fatal("should not exceeded", err)
-	}
+	assertExceeded(t, limiter, k, false)
 	for i := 0; i < 19; i++ {
-		if rem, err := limiter.Remaining(k); err != nil || rem != int64(20-i) {
-			t.Fatal("remaining should be ", 20-i, ", but actual ", rem)
-		}
-
+		assertRem(t, limiter, k, int64(20-i))
 		limiter.Inc(k)
-
-		if exceed, err := limiter.Exceeded(k); err != nil || exceed {
-			t.Fatal("should not exceeded", err)
-		}
+		assertExceeded(t, limiter, k, false)
 	}
 
 	limiter.Inc(k)
-	if exceed, err := limiter.Exceeded(k); err != nil || !exceed {
-		t.Fatal("should exceeded", err)
-	}
+	assertExceeded(t, limiter, k, true)
 }
 
 func TestExpire(t *testing.T) {
@@ -37,23 +27,46 @@ func TestExpire(t *testing.T) {
 	limiter.Reset(k)
 
 	limiter.Inc(k)
-	if c, _ := limiter.Remaining(k); c != 19 {
-		t.Fatal("expect 19, remaining ", c)
-	}
+	assertRem(t, limiter, k, 19)
 
 	wait(time.Second)
 	limiter.Inc(k)
-	if c, _ := limiter.Remaining(k); c != 18 {
-		t.Fatal("expect 18, remaining ", c)
-	}
+	assertRem(t, limiter, k, 18)
 
 	wait(2 * time.Second)
-	if c, _ := limiter.Remaining(k); c != 19 {
-		t.Fatal("expect 1 released", c)
-	}
+	assertRem(t, limiter, k, 19)
 
 	wait(time.Second)
-	if c, _ := limiter.Remaining(k); c != 20 {
-		t.Fatal("expect all released", c)
+	assertRem(t, limiter, k, 20)
+}
+
+func TestNonOccurs(t *testing.T) {
+	// 测试period不是interval的整数倍
+	l := NewLimiter(pool, "rerate:test:limiter:nonoccurs", 3*time.Second, 500*time.Millisecond, 20)
+	k := randkey()
+	l.Reset(k)
+	assertRem(t, l, k, 20)
+
+	for i := 0; i < 6; i++ {
+		l.Inc(k)
+		wait(500 * time.Millisecond)
+	}
+	assertRem(t, l, k, 15)
+
+	for i := 0; i < 5; i++ {
+		wait(500 * time.Millisecond)
+		assertRem(t, l, k, int64(15+1+i))
+	}
+}
+
+func assertRem(t *testing.T, l *Limiter, k string, expect int64) {
+	if c, err := l.Remaining(k); err != nil || c != expect {
+		t.Fatal("expect ", expect, " actual ", c, ", err:", err)
+	}
+}
+
+func assertExceeded(t *testing.T, l *Limiter, k string, expect bool) {
+	if exceed, err := l.Exceeded(k); err != nil || exceed != expect {
+		t.Fatal("expect exceeded:", expect, ",err ", err)
 	}
 }

@@ -25,7 +25,7 @@ func NewCounter(pool Pool, prefix string, period, interval time.Duration) *Count
 		pfx:      prefix,
 		period:   period,
 		interval: interval,
-		bkts:     int(period/interval) + 1,
+		bkts:     int(period/interval) * 2,
 	}
 }
 
@@ -46,9 +46,15 @@ func (c *Counter) inc(id string, bucket int) error {
 	conn := c.pool.Get()
 	defer conn.Close()
 
+	args := make([]interface{}, (c.bkts/2)+1)
+	args[0] = c.key(id)
+	for i := 0; i < c.bkts/2; i++ {
+		args[i+1] = (bucket + i + 1) % c.bkts
+	}
+
 	conn.Send("MULTI")
 	conn.Send("HINCRBY", c.key(id), strconv.Itoa(bucket), 1)
-	conn.Send("HDEL", c.key(id), strconv.Itoa(bucket+1))
+	conn.Send("HDEL", args...)
 	conn.Send("PEXPIRE", c.key(id), int64(c.period/time.Millisecond))
 	_, err := conn.Do("EXEC")
 
@@ -65,14 +71,15 @@ func (c *Counter) Inc(id string) error {
 
 // return available buckets
 func (c *Counter) buckets(nowbk int) []int {
-	rs := make([]int, c.bkts-1)
-	for i := 0; i < c.bkts-1; i++ {
+	len := c.bkts / 2
+	rs := make([]int, len)
+	for i := 0; i < len; i++ {
 		rs[i] = (c.bkts + nowbk - i) % c.bkts
 	}
 	return rs
 }
 
-// Histogram return count histogram in recent period
+// Histogram return count histogram in recent period, order by time desc
 func (c *Counter) Histogram(id string) ([]int64, error) {
 	now := time.Now().UnixNano()
 	buckets := c.buckets(c.hash(now))
@@ -80,7 +87,7 @@ func (c *Counter) Histogram(id string) ([]int64, error) {
 	args := make([]interface{}, len(buckets)+1)
 	args[0] = c.key(id)
 	for i, v := range buckets {
-		args[i+1] = strconv.Itoa(v)
+		args[i+1] = v
 	}
 
 	conn := c.pool.Get()
