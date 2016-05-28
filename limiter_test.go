@@ -40,8 +40,9 @@ func TestExpire(t *testing.T) {
 	assertRem(t, limiter, k, 20)
 }
 
+//TODO 测试period不是interval的整数倍
+
 func TestNonOccurs(t *testing.T) {
-	// 测试period不是interval的整数倍
 	l := NewLimiter(pool, "rerate:test:limiter:nonoccurs", 3*time.Second, 500*time.Millisecond, 20)
 	k := randkey()
 	l.Reset(k)

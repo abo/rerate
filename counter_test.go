@@ -99,24 +99,29 @@ func TestHistogram(t *testing.T) {
 	counter := NewCounter(pool, "rerate:test:counter:count", 4000*time.Millisecond, 400*time.Millisecond)
 	id := randkey()
 	counter.Reset(id)
-	assertHist(t, counter, id, []int64{0, 0, 0, 0, 0, 0, 0, 0, 0, 0})
 
-	current := counter.hash(time.Now().UnixNano())
-	for i := 0; i <= current; i++ {
+	zero := []int64{0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
+	if b, err := counter.Histogram(id); err != nil || !reflect.DeepEqual(b, zero) {
+		t.Fatal("expect all zero without err, actual", b, err)
+	}
+
+	for i := 0; i <= 10; i++ {
 		for j := 0; j < i; j++ {
 			counter.inc(id, i)
 		}
-	}
-	hist, _ := counter.Histogram(id)
+	} //[]int64{0,1,2,3,4,5,6,7,8,9,10,0,0,0,0,0,0,0,0,0}
 
-	for k := 0; k <= 10; k++ {
-		wait(counter.interval)
-		for i := len(hist) - 1; i > 0; i-- {
-			hist[i] = hist[i-1]
+	for i := 0; i < 20; i++ {
+		for j := len(zero) - 1; j > 0; j-- {
+			zero[j] = zero[j-1]
 		}
-		hist[0] = 0
+		if i <= 10 {
+			zero[0] = int64(i)
+		} else {
+			zero[0] = 0
+		}
 
-		assertHist(t, counter, id, hist)
+		assertHist(t, counter, id, i, zero)
 	}
 }
 
@@ -146,8 +151,8 @@ func assertCount(t *testing.T, c *Counter, k string, expect int64) {
 	}
 }
 
-func assertHist(t *testing.T, c *Counter, k string, expect []int64) {
-	if b, err := c.Histogram(k); err != nil || !reflect.DeepEqual(b, expect) {
+func assertHist(t *testing.T, c *Counter, k string, from int, expect []int64) {
+	if b, err := c.histogram(k, from); err != nil || !reflect.DeepEqual(b, expect) {
 		t.Fatal("expect ", expect, " without err, actual", b, err)
 	}
 }

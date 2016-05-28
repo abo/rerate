@@ -70,20 +70,17 @@ func (c *Counter) Inc(id string) error {
 }
 
 // return available buckets
-func (c *Counter) buckets(nowbk int) []int {
+func (c *Counter) buckets(from int) []int {
 	len := c.bkts / 2
 	rs := make([]int, len)
 	for i := 0; i < len; i++ {
-		rs[i] = (c.bkts + nowbk - i) % c.bkts
+		rs[i] = (c.bkts + from - i) % c.bkts
 	}
 	return rs
 }
 
-// Histogram return count histogram in recent period, order by time desc
-func (c *Counter) Histogram(id string) ([]int64, error) {
-	now := time.Now().UnixNano()
-	buckets := c.buckets(c.hash(now))
-
+func (c *Counter) histogram(id string, from int) ([]int64, error) {
+	buckets := c.buckets(from)
 	args := make([]interface{}, len(buckets)+1)
 	args[0] = c.key(id)
 	for i, v := range buckets {
@@ -107,6 +104,14 @@ func (c *Counter) Histogram(id string) ([]int64, error) {
 		}
 	}
 	return ret, nil
+}
+
+// Histogram return count histogram in recent period, order by time desc
+func (c *Counter) Histogram(id string) ([]int64, error) {
+	now := time.Now().UnixNano()
+	from := c.hash(now)
+
+	return c.histogram(id, from)
 }
 
 // Count return total occurs in recent period
