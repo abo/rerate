@@ -10,13 +10,16 @@ services:
 
 install:
     - go get -v -t ./...
+    - go get golang.org/x/tools/cmd/cover
+    - go get github.com/mattn/goveralls
 
 before_script:
     # sleep a bit to allow things to get set up
     # - sleep 10
 
 script:
-    - go test -v ./...
+    - go test -v -covermode=count -coverprofile=coverage.out ./...
+    - $(go env GOPATH | awk 'BEGIN{FS=":"} {print $1}')/bin/goveralls -coverprofile=coverage.out -service=travis-ci -repotoken $COVERALLS_TOKEN
 
 after_failure:
     - tail -n100 ./*.log
