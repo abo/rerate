@@ -1,6 +1,6 @@
 rerate 
 ===========
-[![Build Status](https://travis-ci.org/abo/rerate.svg)](https://travis-ci.org/abo/rerate)
+[![Build Status](https://api.travis-ci.org/abo/rerate.svg)](https://travis-ci.org/abo/rerate)
 [![GoDoc](https://godoc.org/github.com/abo/rerate?status.svg)](https://godoc.org/github.com/abo/rerate)
 [![Go Report Card](https://goreportcard.com/badge/github.com/abo/rerate)](https://goreportcard.com/report/github.com/abo/rerate)
 [![Coverage](http://gocover.io/_badge/github.com/abo/rerate)](https://gocover.io/github.com/abo/rerate)
