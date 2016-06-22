@@ -1,8 +1,10 @@
-package rerate
+package rerate_test
 
 import (
 	"testing"
 	"time"
+
+	. "github.com/abo/rerate"
 )
 
 func TestLimiter(t *testing.T) {

@@ -1,4 +1,4 @@
-package rerate
+package rerate_test
 
 import (
 	"math/rand"
@@ -7,6 +7,7 @@ import (
 	"testing"
 	"time"
 
+	. "github.com/abo/rerate"
 	"github.com/garyburd/redigo/redis"
 )
 
@@ -60,7 +61,7 @@ func TestBuckets(t *testing.T) {
 
 	counter := NewCounter(pool, "rerate:test:counter:buckets", 10*time.Second, time.Second)
 	for input, expect := range testcases {
-		buckets := counter.buckets(input)
+		buckets := Buckets(counter, input)
 		if !reflect.DeepEqual(buckets, expect) {
 			t.Fatal("expect ", expect, ",but ", buckets)
 		}
@@ -80,8 +81,8 @@ func TestHash(t *testing.T) {
 
 	for _, input := range testcases {
 		next := input + int64(time.Second)
-		b := counter.hash(input)
-		nb := counter.hash(next)
+		b := Hash(counter, input)
+		nb := Hash(counter, next)
 		if b < 0 || b > 2*l {
 			t.Fatal("out of range ", input)
 		}
@@ -107,7 +108,7 @@ func TestHistogram(t *testing.T) {
 
 	for i := 0; i <= 10; i++ {
 		for j := 0; j < i; j++ {
-			counter.inc(id, i)
+			IncBucket(counter, id, i)
 		}
 	} //[]int64{0,1,2,3,4,5,6,7,8,9,10,0,0,0,0,0,0,0,0,0}
 
@@ -152,7 +153,7 @@ func assertCount(t *testing.T, c *Counter, k string, expect int64) {
 }
 
 func assertHist(t *testing.T, c *Counter, k string, from int, expect []int64) {
-	if b, err := c.histogram(k, from); err != nil || !reflect.DeepEqual(b, expect) {
+	if b, err := HistogramFrom(c, k, from); err != nil || !reflect.DeepEqual(b, expect) {
 		t.Fatal("expect ", expect, " without err, actual", b, err)
 	}
 }
