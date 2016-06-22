@@ -68,22 +68,35 @@ func ExampleLimiter() {
 		}
 	}()
 
-	time.Sleep(1850 * time.Millisecond)
-	rem, _ := limiter.Remaining(key)
-	exceed, _ := limiter.Exceeded(key)
-	fmt.Println(rem, exceed) // after 9 ticks, count 9, remaining 1
-
-	time.Sleep(200 * time.Millisecond)
-	ticker.Stop()
-	rem, _ = limiter.Remaining(key)
-	exceed, _ = limiter.Exceeded(key)
-	fmt.Println(rem, exceed) // after 10 ticks, count 10, remaining 0, exceeded
-
-	time.Sleep(150 * time.Millisecond)
-	rem, _ = limiter.Remaining(key)
-	exceed, _ = limiter.Exceeded(key)
-	fmt.Println(rem, exceed) // first inc should be released, remaining 1
-	//Output: 1 false
-	// 0 true
-	// 1 false
+	for i := 0; i < 20; i++ {
+		time.Sleep(200 * time.Millisecond)
+		if exceed, _ := limiter.Exceeded(key); exceed {
+			fmt.Println("exceeded")
+			ticker.Stop()
+		} else {
+			rem, _ := limiter.Remaining(key)
+			fmt.Println("remaining", rem)
+		}
+	}
+	//Output:
+	// remaining 9
+	// remaining 8
+	// remaining 7
+	// remaining 6
+	// remaining 5
+	// remaining 4
+	// remaining 3
+	// remaining 2
+	// remaining 1
+	// exceeded
+	// remaining 1
+	// remaining 2
+	// remaining 3
+	// remaining 4
+	// remaining 5
+	// remaining 6
+	// remaining 7
+	// remaining 8
+	// remaining 9
+	// remaining 10
 }
