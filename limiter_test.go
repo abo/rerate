@@ -31,14 +31,14 @@ func TestExpire(t *testing.T) {
 	limiter.Inc(k)
 	assertRem(t, limiter, k, 19)
 
-	wait(time.Second)
+	time.Sleep(time.Second)
 	limiter.Inc(k)
 	assertRem(t, limiter, k, 18)
 
-	wait(2 * time.Second)
+	time.Sleep(2 * time.Second)
 	assertRem(t, limiter, k, 19)
 
-	wait(time.Second)
+	time.Sleep(time.Second)
 	assertRem(t, limiter, k, 20)
 }
 
@@ -52,12 +52,12 @@ func TestNonOccurs(t *testing.T) {
 
 	for i := 0; i < 6; i++ {
 		l.Inc(k)
-		wait(500 * time.Millisecond)
+		time.Sleep(500 * time.Millisecond)
 	}
 	assertRem(t, l, k, 15)
 
 	for i := 0; i < 5; i++ {
-		wait(500 * time.Millisecond)
+		time.Sleep(500 * time.Millisecond)
 		assertRem(t, l, k, int64(15+1+i))
 	}
 }

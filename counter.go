@@ -9,7 +9,7 @@ import (
 )
 
 // Counter count total occurs during a period,
-// it will store occurs during every time slice interval: (now ~ now - intervl), (now - intervl ~ now - 2*intervl)...
+// it will store occurs during every time slice interval: (now ~ now - interval), (now - interval ~ now - 2*interval)...
 type Counter struct {
 	pool     Pool
 	pfx      string

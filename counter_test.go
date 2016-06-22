@@ -8,48 +8,16 @@ import (
 	"time"
 
 	. "github.com/abo/rerate"
-	"github.com/garyburd/redigo/redis"
 )
 
 var pool Pool
-
-func newPool(server, password string) *redis.Pool {
-	return &redis.Pool{
-		MaxIdle:     3,
-		IdleTimeout: 240 * time.Second,
-		Dial: func() (redis.Conn, error) {
-			c, err := redis.Dial("tcp", server)
-			if err != nil {
-				return nil, err
-			}
-			if len(password) == 0 {
-				return c, err
-			}
-
-			if _, err := c.Do("AUTH", password); err != nil {
-				c.Close()
-				return nil, err
-			}
-			return c, err
-		},
-		TestOnBorrow: func(c redis.Conn, t time.Time) error {
-			_, err := c.Do("PING")
-			return err
-		},
-	}
-}
-
-func wait(duration time.Duration) {
-	t1 := time.NewTimer(duration)
-	<-t1.C
-}
 
 func randkey() string {
 	return strconv.Itoa(rand.Int())
 }
 
 func init() {
-	pool = newPool("localhost:6379", "")
+	pool = newRedisPool("localhost:6379", "")
 }
 
 func TestBuckets(t *testing.T) {
@@ -89,7 +57,7 @@ func TestHash(t *testing.T) {
 		if nb < 0 || nb > 2*l {
 			t.Fatal("out of range ", input)
 		}
-		if b+1 != nb && b-(2*l) != nb {
+		if b+1 != nb && b+1-(2*l) != nb {
 			t.Fatal("input ", input)
 		}
 	}
