@@ -39,6 +39,7 @@ func ExampleCounter() {
 	key := "pv-home"
 	// pv count in 5s, try to release per 0.5s
 	counter := rerate.NewCounter(redis, "rr:test:count", 5*time.Second, 500*time.Millisecond)
+	counter.Reset(key)
 
 	ticker := time.NewTicker(1000 * time.Millisecond)
 	go func() {
@@ -60,19 +61,25 @@ func ExampleLimiter() {
 	key := "pv-dashboard"
 	// rate limit to 10/2s, release interval 0.2s
 	limiter := rerate.NewLimiter(redis, "rr:test:limit", 2*time.Second, 200*time.Millisecond, 10)
+	limiter.Reset(key)
 
 	ticker := time.NewTicker(200 * time.Millisecond)
+
 	go func() {
 		for _ = range ticker.C {
 			limiter.Inc(key)
+			if exceed, _ := limiter.Exceeded(key); exceed {
+				ticker.Stop()
+			}
 		}
 	}()
 
+	time.Sleep(20 * time.Millisecond)
 	for i := 0; i < 20; i++ {
 		time.Sleep(200 * time.Millisecond)
+
 		if exceed, _ := limiter.Exceeded(key); exceed {
 			fmt.Println("exceeded")
-			ticker.Stop()
 		} else {
 			rem, _ := limiter.Remaining(key)
 			fmt.Println("remaining", rem)

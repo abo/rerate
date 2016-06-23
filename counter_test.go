@@ -60,6 +60,11 @@ func TestHash(t *testing.T) {
 		if b+1 != nb && b+1-(2*l) != nb {
 			t.Fatal("input ", input)
 		}
+
+		np := Hash(counter, input+int64(time.Minute))
+		if (np-b) != l && (b-np) != l {
+			t.Fatal("input", input, " incorrect next period")
+		}
 	}
 
 }
