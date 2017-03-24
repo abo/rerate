@@ -10,27 +10,35 @@ type Limiter struct {
 
 // NewLimiter create a new redis-based ratelimiter
 // the Limiter limits the rate to max times per period
-func NewLimiter(pool Pool, pfx string, period, interval time.Duration, max int64) *Limiter {
+func NewLimiter(newBuckets BucketsFactory, pfx string, period, interval time.Duration, max int64) *Limiter {
 	return &Limiter{
-		Counter: *NewCounter(pool, pfx, period, interval),
+		Counter: *NewCounter(newBuckets, pfx, period, interval),
 		max:     max,
 	}
 }
 
-// Remaining return the number of requests left for the time window
-func (l *Limiter) Remaining(id string) (int64, error) {
-	occurs, err := l.Count(id)
+func (l *Limiter) remainingAt(id string, t time.Time) (int64, error) {
+	occurs, err := l.countAt(id, t)
 	if err != nil {
 		return 0, err
 	}
 	return l.max - occurs, nil
 }
 
-// Exceeded is exceeded the rate limit or not
-func (l *Limiter) Exceeded(id string) (bool, error) {
+// Remaining return the number of requests left for the time window
+func (l *Limiter) Remaining(id string) (int64, error) {
+	return l.remainingAt(id, time.Now())
+}
+
+func (l *Limiter) exceededAt(id string, t time.Time) (bool, error) {
 	rem, err := l.Remaining(id)
 	if err != nil {
 		return false, err
 	}
 	return rem <= 0, nil
+}
+
+// Exceeded is exceeded the rate limit or not
+func (l *Limiter) Exceeded(id string) (bool, error) {
+	return l.exceededAt(id, time.Now())
 }

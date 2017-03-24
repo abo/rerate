@@ -4,11 +4,18 @@ import (
 	"testing"
 	"time"
 
+	redis "gopkg.in/redis.v5"
+
 	. "github.com/abo/rerate"
 )
 
 func TestLimiter(t *testing.T) {
-	limiter := NewLimiter(pool, "rerate:test:limiter:limiter", time.Minute, time.Second, 20)
+	redisBuckets := NewRedisBuckets(redis.NewClient(&redis.Options{
+		Addr:     "localhost:6379",
+		Password: "",
+		DB:       0,
+	}))
+	limiter := NewLimiter(redisBuckets, "rerate:test:limiter:limiter", time.Minute, time.Second, 20)
 	k := randkey()
 	limiter.Reset(k)
 
@@ -24,7 +31,12 @@ func TestLimiter(t *testing.T) {
 }
 
 func TestExpire(t *testing.T) {
-	limiter := NewLimiter(pool, "rerate:test:limiter:expire", 3*time.Second, time.Second, 20)
+	redisBuckets := NewRedisBuckets(redis.NewClient(&redis.Options{
+		Addr:     "localhost:6379",
+		Password: "",
+		DB:       0,
+	}))
+	limiter := NewLimiter(redisBuckets, "rerate:test:limiter:expire", 3*time.Second, time.Second, 20)
 	k := randkey()
 	limiter.Reset(k)
 
@@ -45,7 +57,12 @@ func TestExpire(t *testing.T) {
 //TODO 测试period不是interval的整数倍
 
 func TestNonOccurs(t *testing.T) {
-	l := NewLimiter(pool, "rerate:test:limiter:nonoccurs", 3*time.Second, 500*time.Millisecond, 20)
+	redisBuckets := NewRedisBuckets(redis.NewClient(&redis.Options{
+		Addr:     "localhost:6379",
+		Password: "",
+		DB:       0,
+	}))
+	l := NewLimiter(redisBuckets, "rerate:test:limiter:nonoccurs", 3*time.Second, 500*time.Millisecond, 20)
 	k := randkey()
 	l.Reset(k)
 	assertRem(t, l, k, 20)

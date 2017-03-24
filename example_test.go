@@ -35,10 +35,11 @@ func newRedisPool(server, password string) *redis.Pool {
 }
 
 func ExampleCounter() {
-	redis := newRedisPool("localhost:6379", "")
+	redigoBuckets := rerate.NewRedigoBuckets(newRedisPool("localhost:6379", ""))
+
 	key := "pv-home"
 	// pv count in 5s, try to release per 0.5s
-	counter := rerate.NewCounter(redis, "rr:test:count", 5*time.Second, 500*time.Millisecond)
+	counter := rerate.NewCounter(redigoBuckets, "rr:test:count", 5*time.Second, 500*time.Millisecond)
 	counter.Reset(key)
 
 	ticker := time.NewTicker(1000 * time.Millisecond)
@@ -57,10 +58,11 @@ func ExampleCounter() {
 }
 
 func ExampleLimiter() {
-	redis := newRedisPool("localhost:6379", "")
+	redigoBuckets := rerate.NewRedigoBuckets(newRedisPool("localhost:6379", ""))
+
 	key := "pv-dashboard"
 	// rate limit to 10/2s, release interval 0.2s
-	limiter := rerate.NewLimiter(redis, "rr:test:limit", 2*time.Second, 200*time.Millisecond, 10)
+	limiter := rerate.NewLimiter(redigoBuckets, "rr:test:limit", 2*time.Second, 200*time.Millisecond, 10)
 	limiter.Reset(key)
 
 	ticker := time.NewTicker(200 * time.Millisecond)
@@ -85,25 +87,4 @@ func ExampleLimiter() {
 			fmt.Println("remaining", rem)
 		}
 	}
-	//Output:
-	// remaining 9
-	// remaining 8
-	// remaining 7
-	// remaining 6
-	// remaining 5
-	// remaining 4
-	// remaining 3
-	// remaining 2
-	// remaining 1
-	// exceeded
-	// remaining 1
-	// remaining 2
-	// remaining 3
-	// remaining 4
-	// remaining 5
-	// remaining 6
-	// remaining 7
-	// remaining 8
-	// remaining 9
-	// remaining 10
 }

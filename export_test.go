@@ -1,17 +1,27 @@
 package rerate
 
-func Buckets(c *Counter, from int) []int {
-	return c.buckets(from)
-}
+import "time"
 
-func Hash(c *Counter, t int64) int {
+// func BucketIdsExp(c *Counter, from int) []int {
+// 	return c.bucketIds(from)
+// }
+
+func HashExp(c *Counter, t time.Time) int64 {
 	return c.hash(t)
 }
 
-func IncBucket(c *Counter, id string, bucket int) error {
-	return c.inc(id, bucket)
+func IncAtExp(c *Counter, id string, t time.Time) error {
+	return c.incAt(id, t)
 }
 
-func HistogramFrom(c *Counter, id string, from int) ([]int64, error) {
-	return c.histogram(id, from)
+func HistogramAtExp(c *Counter, id string, t time.Time) ([]int64, error) {
+	return c.histogramAt(id, t)
+}
+
+func RemainingAtExp(l *Limiter, id string, t time.Time) (int64, error) {
+	return l.remainingAt(id, t)
+}
+
+func ExceededAtExp(l *Limiter, id string, t time.Time) (bool, error) {
+	return l.exceededAt(id, t)
 }
