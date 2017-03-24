@@ -26,15 +26,25 @@ import (
 ...
 
 func main() {
+    // redigo buckets
     pool := newRedisPool("localhost:6379", "")
+    buckets := rerate.NewRedigoBuckets(pool)
+
+    // OR redis buckets
+    // client := redis.NewClient(&redis.Options{
+	//	 Addr:     "localhost:6379",
+	// 	 Password: "",
+	// 	 DB:       0,
+	// })
+    // buckets := rerate.NewRedisBuckets(client)
     
     // Counter
-    counter := rerate.NewCounter(pool, "rl:test", 10 * time.Minute, 15 * time.Second)
+    counter := rerate.NewCounter(buckets, "rl:test", 10 * time.Minute, 15 * time.Second)
     counter.Inc("click")
     c, err := counter.Count("click")
     
     // Limiter
-    limiter := rerate.NewLimiter(pool, "rl:test", 1 * time.Hour, 15 * time.Minute, 100)
+    limiter := rerate.NewLimiter(buckets, "rl:test", 1 * time.Hour, 15 * time.Minute, 100)
     limiter.Inc("114.255.86.200")
     rem, err := limiter.Remaining("114.255.86.200")
     exceed, err := limiter.Exceeded("114.255.86.200")
