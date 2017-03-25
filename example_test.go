@@ -8,7 +8,7 @@ import (
 	"github.com/garyburd/redigo/redis"
 )
 
-func newRedisPool(server, password string) *redis.Pool {
+func newRedigoPool(server, password string) *redis.Pool {
 	return &redis.Pool{
 		MaxIdle:     3,
 		IdleTimeout: 240 * time.Second,
@@ -35,7 +35,7 @@ func newRedisPool(server, password string) *redis.Pool {
 }
 
 func ExampleCounter() {
-	redigoBuckets := rerate.NewRedigoBuckets(newRedisPool("localhost:6379", ""))
+	redigoBuckets := rerate.NewRedigoBuckets(newRedigoPool("localhost:6379", ""))
 
 	key := "pv-home"
 	// pv count in 5s, try to release per 0.5s
@@ -44,7 +44,7 @@ func ExampleCounter() {
 
 	ticker := time.NewTicker(1000 * time.Millisecond)
 	go func() {
-		for _ = range ticker.C {
+		for range ticker.C {
 			counter.Inc(key)
 		}
 	}()
@@ -58,7 +58,7 @@ func ExampleCounter() {
 }
 
 func ExampleLimiter() {
-	redigoBuckets := rerate.NewRedigoBuckets(newRedisPool("localhost:6379", ""))
+	redigoBuckets := rerate.NewRedigoBuckets(newRedigoPool("localhost:6379", ""))
 
 	key := "pv-dashboard"
 	// rate limit to 10/2s, release interval 0.2s
@@ -68,7 +68,7 @@ func ExampleLimiter() {
 	ticker := time.NewTicker(200 * time.Millisecond)
 
 	go func() {
-		for _ = range ticker.C {
+		for range ticker.C {
 			limiter.Inc(key)
 			if exceed, _ := limiter.Exceeded(key); exceed {
 				ticker.Stop()

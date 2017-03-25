@@ -17,7 +17,7 @@ func randkey() string {
 }
 
 func TestHistogram(t *testing.T) {
-	redisBuckets := NewRedisBuckets(redis.NewClient(&redis.Options{
+	redisBuckets := NewRedisV5Buckets(redis.NewClient(&redis.Options{
 		Addr:     "localhost:6379",
 		Password: "",
 		DB:       0,
@@ -53,7 +53,7 @@ func TestHistogram(t *testing.T) {
 }
 
 func TestCounter(t *testing.T) {
-	redisBuckets := NewRedisBuckets(redis.NewClient(&redis.Options{
+	redisBuckets := NewRedisV5Buckets(redis.NewClient(&redis.Options{
 		Addr:     "localhost:6379",
 		Password: "",
 		DB:       0,

@@ -10,7 +10,7 @@ import (
 )
 
 func TestLimiter(t *testing.T) {
-	redisBuckets := NewRedisBuckets(redis.NewClient(&redis.Options{
+	redisBuckets := NewRedisV5Buckets(redis.NewClient(&redis.Options{
 		Addr:     "localhost:6379",
 		Password: "",
 		DB:       0,
@@ -31,7 +31,7 @@ func TestLimiter(t *testing.T) {
 }
 
 func TestExpire(t *testing.T) {
-	redisBuckets := NewRedisBuckets(redis.NewClient(&redis.Options{
+	redisBuckets := NewRedisV5Buckets(redis.NewClient(&redis.Options{
 		Addr:     "localhost:6379",
 		Password: "",
 		DB:       0,
@@ -57,7 +57,7 @@ func TestExpire(t *testing.T) {
 //TODO 测试period不是interval的整数倍
 
 func TestNonOccurs(t *testing.T) {
-	redisBuckets := NewRedisBuckets(redis.NewClient(&redis.Options{
+	redisBuckets := NewRedisV5Buckets(redis.NewClient(&redis.Options{
 		Addr:     "localhost:6379",
 		Password: "",
 		DB:       0,

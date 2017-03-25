@@ -1,19 +1,20 @@
 package rerate
 
 import (
-	"fmt"
 	"strconv"
 	"time"
 
 	"github.com/garyburd/redigo/redis"
 )
 
+// RedigoBuckets is a Buckets using redigo as backend
 type RedigoBuckets struct {
 	pool *redis.Pool
 	size int64
 	ttl  time.Duration
 }
 
+// NewRedigoBuckets is a RedigoBuckets factory
 func NewRedigoBuckets(redis *redis.Pool) BucketsFactory {
 	return func(size int64, ttl time.Duration) Buckets {
 		return &RedigoBuckets{
@@ -23,57 +24,48 @@ func NewRedigoBuckets(redis *redis.Pool) BucketsFactory {
 		}
 	}
 
-	// p := &redis.Pool{
-	// 	MaxIdle:     3,
-	// 	IdleTimeout: 240 * time.Second,
-	// 	Dial: func() (redis.Conn, error) {
-	// 		c, err := redis.Dial("tcp", server)
-	// 		if err != nil {
-	// 			return nil, err
-	// 		}
-	// 		if len(password) == 0 {
-	// 			return c, err
-	// 		}
-
-	// 		if _, err := c.Do("AUTH", password); err != nil {
-	// 			c.Close()
-	// 			return nil, err
-	// 		}
-	// 		return c, err
-	// 	},
-	// 	TestOnBorrow: func(c redis.Conn, t time.Time) error {
-	// 		_, err := c.Do("PING")
-	// 		return err
-	// 	},
-	// }
-
 }
 
-func (bs *RedigoBuckets) gc(key string, id int64) {
+// cleanup unused bucket(s)
+func (bs *RedigoBuckets) cleanup(key string, from int64) {
 	conn := bs.pool.Get()
 	defer conn.Close()
 
-	l, _ := redis.Int64(conn.Do("HLEN", key))
-	if l >= bs.size*2 {
-		// := redis.Strings(conn.Do("HKEYS", key))
+	if l, err := redis.Int64(conn.Do("HLEN", key)); err != nil || l < bs.size*2 {
+		return
+	}
 
-		fmt.Println("NEED GC:", l, ">=", bs.size)
+	if ids, err := redis.Strings(conn.Do("HKEYS", key)); err == nil {
+		var delIds []int64
+		for _, s := range ids {
+			if v, err := strconv.ParseInt(s, 10, 64); err == nil && v <= from-bs.size {
+				delIds = append(delIds, v)
+			}
+		}
+		bs.Del(key, delIds...)
 	}
 }
 
+// Inc increment bucket key:id 's occurs
 func (bs *RedigoBuckets) Inc(key string, id int64) error {
-	// inc id,  clear (id+1, id+2, id+3 ... , id+size/2 ), expire all after ttl
 	conn := bs.pool.Get()
 	defer conn.Close()
 
 	conn.Send("MULTI")
 	conn.Send("HINCRBY", key, strconv.FormatInt(id, 10), 1)
 	conn.Send("PEXPIRE", key, int64(bs.ttl/time.Millisecond))
-	_, err := conn.Do("EXEC")
-	go bs.gc(key, id)
-	return err
+	ret, err := redis.Ints(conn.Do("EXEC"))
+	if err != nil {
+		return err
+	}
+
+	if ret[0] == 1 { // new bucket created
+		go bs.cleanup(key, id)
+	}
+	return nil
 }
 
+// Del delete bucket key:ids, or delete Buckets key when ids is empty.
 func (bs *RedigoBuckets) Del(key string, ids ...int64) error {
 	conn := bs.pool.Get()
 	defer conn.Close()
@@ -92,6 +84,7 @@ func (bs *RedigoBuckets) Del(key string, ids ...int64) error {
 	return err
 }
 
+// Get return bucket key:ids' occurs
 func (bs *RedigoBuckets) Get(key string, ids ...int64) ([]int64, error) {
 	args := make([]interface{}, len(ids)+1)
 	args[0] = key
