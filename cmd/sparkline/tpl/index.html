@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>rerate's sparkline</title>
+
+    <!-- Bootstrap -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+
+    <!--<script src="https://unpkg.com/react@15/dist/react.min.js"></script>-->
+    <!--<script src="https://unpkg.com/react-dom@15/dist/react-dom.min.js"></script>-->
+    <!--<script src="https://unpkg.com/react-sparklines@1.6.0/src/Sparklines.js"></script>-->
+    <!--<script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>-->
+    <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+      <script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
+      <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+    <![endif]-->
+  </head>
+  <body>
+    <div class="container">
+      <h1>Sparkline for rerate</h1>
+      <table class="table table-bordered">
+        <thead>
+          <tr>
+            <th>rerate:sparkline:0</th>
+            <th>rerate:sparkline:1</th>
+            <th>rerate:sparkline:a</th>
+            <th>rerate:sparkline:b</th>
+            <th>rerate:sparkline:c</th>
+            <th>rerate:sparkline:d</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td id="sparkline-0"></td>
+            <td id="sparkline-1"></td>
+            <td id="sparkline-a"></td>
+            <td id="sparkline-b"></td>
+            <td id="sparkline-c"></td>
+            <td id="sparkline-d"></td>
+          </tr>                 
+        </tbody>
+      </table>
+    </div>
+    <script type="text/javascript" src="/assets/sparkline.js"></script>
+    <script type="text/javascript">
+      document.body.onmousemove = function(e){
+        if (e.clientX > (window.screen.width / 2)) {
+          fetch('/inc/0');
+        }else {
+          fetch('/inc/1');
+        }
+      };
+    </script>
+  </body>
+</html>

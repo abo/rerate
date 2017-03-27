@@ -26,3 +26,6 @@ _testmain.go
 
 .vscode/
 *.log
+
+cmd/sparkline/node_modules/
+cmd/sparkline/assets/

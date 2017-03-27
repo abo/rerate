@@ -66,6 +66,20 @@ Documentation
 - [Wiki](https://github.com/abo/rerate/wiki)
 
 
+Sample - Sparkline
+------------------
+
+![](https://github.com/abo/rerate/raw/master/cmd/sparkline/sparkline.png)
+
+```
+    cd cmd/sparkline
+    npm install webpack -g
+    npm install
+    webpack && go run main.go
+```
+Open `http://localhost:8080` in Browser, And then move mouse.
+
+
 Contributing
 ------------
 WELCOME
