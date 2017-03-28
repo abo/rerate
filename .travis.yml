@@ -18,7 +18,7 @@ before_script:
     # - sleep 10
 
 script:
-    - go test -v -covermode=count -coverprofile=coverage.out ./...
+    - go test -v -covermode=count -coverprofile=coverage.out 
     - $(go env GOPATH | awk 'BEGIN{FS=":"} {print $1}')/bin/goveralls -coverprofile=coverage.out -service=travis-ci -repotoken $COVERALLS_TOKEN
 
 after_failure:
